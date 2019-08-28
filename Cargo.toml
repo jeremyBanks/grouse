@@ -1,0 +1,10 @@
+[package]
+name = "grouse"
+version = "0.1.0"
+authors = ["Jeremy Banks <_@jeremy.ca>"]
+edition = "2018"
+publish = false
+
+[dependencies]
+piston_window = "0.103.0"
+rand = "0.7.0"
