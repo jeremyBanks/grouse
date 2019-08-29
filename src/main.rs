@@ -1,3 +1,4 @@
+use nalgebra;
 use piston_window::{
     self,
     clear,
@@ -8,26 +9,60 @@ use piston_window::{
     ReleaseEvent,
     RenderEvent,
 };
-use rand::random;
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct Color([f32; 4]);
+type Vector2 = nalgebra::Vector2<f64>;
+trait Vector2Utils {
+    fn x(&self) -> f64;
+    fn set_x(&mut self, x: f64);
+    fn add_x(&mut self, x: f64);
+    fn y(&self) -> f64;
+    fn set_y(&mut self, y: f64);
+    fn add_y(&mut self, y: f64);
+}
+impl Vector2Utils for Vector2 {
+    fn x(&self) -> f64 {
+        self[0]
+    }
 
-impl Color {
+    fn set_x(&mut self, x: f64) {
+        self[0] = x;
+    }
+
+    fn add_x(&mut self, x: f64) {
+        self[0] += x;
+    }
+
+    fn y(&self) -> f64 {
+        self[1]
+    }
+
+    fn set_y(&mut self, y: f64) {
+        self[1] = y;
+    }
+
+    fn add_y(&mut self, y: f64) {
+        self[1] += y;
+    }
+}
+type Color = [f32; 4];
+
+pub mod colors {
+    use super::Color;
+
     pub fn black() -> Color {
-        Color([0.0, 0.0, 0.0, 1.0])
+        [0.0, 0.0, 0.0, 1.0]
     }
 
     pub fn white() -> Color {
-        Color([1.0, 1.0, 1.0, 1.0])
+        [1.0, 1.0, 1.0, 1.0]
     }
 
     pub fn transparent() -> Color {
-        Color([0.0, 0.0, 0.0, 0.0])
+        [0.0, 0.0, 0.0, 0.0]
     }
 
     pub fn random() -> Color {
-        Color([random(), random(), random(), 1.0])
+        [rand::random(), rand::random(), rand::random(), 1.0]
     }
 }
 
@@ -59,15 +94,14 @@ impl LevelState {
 #[derive(Debug, Clone, Copy)]
 pub struct Sprite {
     rect: Rect,
+    velocity: Vector2,
     color: Color,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct Rect {
-    bottom: f64,
-    left: f64,
-    width: f64,
-    height: f64,
+    bottom_left: Vector2,
+    dimensions: Vector2,
 }
 
 fn main() {
@@ -83,32 +117,29 @@ fn main() {
     let mut state = LevelState {
         player: Sprite {
             rect: Rect {
-                bottom: 0.25,
-                left: 0.5,
-                width: 0.125,
-                height: 0.125,
+                bottom_left: Vector2::new(0.25, 0.5),
+                dimensions: Vector2::new(0.125, 0.125),
             },
-            color: Color::random(),
+            color: colors::random(),
+            velocity: Vector2::new(0.0, 0.0),
         },
         level: Level {
             terrain: vec![
                 Sprite {
                     rect: Rect {
-                        bottom: 0.0,
-                        left: 0.0,
-                        width: 1.0,
-                        height: 0.0625,
+                        bottom_left: Vector2::new(0.0, 0.0),
+                        dimensions: Vector2::new(1.0, 0.05),
                     },
-                    color: Color::random(),
+                    color: colors::random(),
+                    velocity: Vector2::new(0.0, 0.0),
                 },
                 Sprite {
                     rect: Rect {
-                        bottom: 0.0625,
-                        left: 0.0,
-                        width: 0.5,
-                        height: 0.0625,
+                        bottom_left: Vector2::new(0.0, 0.05),
+                        dimensions: Vector2::new(0.5, 0.05),
                     },
-                    color: Color::random(),
+                    color: colors::random(),
+                    velocity: Vector2::new(0.0, 0.0),
                 },
             ],
         },
@@ -117,16 +148,21 @@ fn main() {
     while let Some(event) = window.next() {
         if let Some(_render) = event.render_args() {
             window.draw_2d(&event, |context, graphics, _device| {
-                clear(Color::black().0, graphics);
+                clear(colors::black(), graphics);
+
+                let dt = 1.0 / 60.0;
+                state.player.rect.bottom_left += state.player.velocity * dt;
 
                 for sprite in state.sprites() {
                     rectangle(
-                        sprite.color.0,
+                        sprite.color,
                         [
-                            width * sprite.rect.left,
-                            height - height * (sprite.rect.bottom + sprite.rect.height),
-                            width * sprite.rect.width,
-                            height * sprite.rect.height,
+                            width * sprite.rect.bottom_left.x(),
+                            height
+                                - height
+                                    * (sprite.rect.bottom_left.y() + sprite.rect.dimensions.y()),
+                            width * sprite.rect.dimensions.x(),
+                            height * sprite.rect.dimensions.y(),
                         ],
                         context.transform,
                         graphics,
@@ -138,16 +174,16 @@ fn main() {
         if let Some(Button::Keyboard(key)) = event.press_args() {
             match key {
                 Key::W => {
-                    state.player.rect.bottom += 0.1;
+                    state.player.velocity.set_y(0.5);
                 }
                 Key::A => {
-                    state.player.rect.left -= 0.1;
+                    state.player.velocity.set_x(-0.5);
                 }
                 Key::S => {
-                    state.player.rect.bottom -= 0.1;
+                    state.player.velocity.set_y(-0.5);
                 }
                 Key::D => {
-                    state.player.rect.left += 0.1;
+                    state.player.velocity.set_x(0.5);
                 }
                 _ => {}
             }
@@ -156,16 +192,24 @@ fn main() {
         if let Some(Button::Keyboard(key)) = event.release_args() {
             match key {
                 Key::W => {
-                    println!("no more up");
+                    if state.player.velocity.y() > 0.0 {
+                        state.player.velocity.set_y(0.0);
+                    }
                 }
                 Key::A => {
-                    println!("no more left");
+                    if state.player.velocity.x() < 0.0 {
+                        state.player.velocity.set_x(0.0);
+                    }
                 }
                 Key::S => {
-                    println!("no more down");
+                    if state.player.velocity.y() < 0.0 {
+                        state.player.velocity.set_y(0.0);
+                    }
                 }
                 Key::D => {
-                    println!("no more right");
+                    if state.player.velocity.x() > 0.0 {
+                        state.player.velocity.set_x(0.0);
+                    }
                 }
                 _ => {}
             }

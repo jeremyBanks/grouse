@@ -8,3 +8,4 @@ publish = false
 [dependencies]
 piston_window = "0.103.0"
 rand = "0.7.0"
+nalgebra = "0.18.1"
