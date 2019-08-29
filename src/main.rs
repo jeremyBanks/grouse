@@ -1,14 +1,12 @@
-use std::cell::RefCell;
-
 use piston_window::{
+    self,
     clear,
     rectangle,
-    OpenGL,
-    PistonWindow,
+    Button,
+    Key,
     PressEvent,
     ReleaseEvent,
     RenderEvent,
-    WindowSettings,
 };
 use rand::random;
 
@@ -35,17 +33,33 @@ impl Color {
 
 #[derive(Debug, Clone)]
 pub struct Level {
-    pub terrain: Vec<Terrain>,
+    pub terrain: Vec<Sprite>,
 }
 
+#[derive(Debug, Clone)]
 pub struct LevelState {
     pub level: Level,
+    pub player: Sprite,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
-pub struct Coordinate {
-    pub x: f64,
-    pub y: f64,
+impl LevelState {
+    pub fn sprites(&self) -> Vec<Sprite> {
+        let mut sprites = Vec::new();
+
+        for sprite in self.level.terrain.iter() {
+            sprites.push(*sprite);
+        }
+
+        sprites.push(self.player);
+
+        sprites
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct Sprite {
+    rect: Rect,
+    color: Color,
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -56,25 +70,29 @@ pub struct Rect {
     height: f64,
 }
 
-#[derive(Debug, Clone)]
-pub struct Terrain {
-    rect: Rect,
-    color: Color,
-}
-
 fn main() {
     let (width, height) = (512.0, 512.0);
     let mut window: piston_window::PistonWindow =
-        piston_window::WindowSettings::new("Grouse", (512, 512))
+        piston_window::WindowSettings::new("Grouse", (width as u32, height as u32))
             .exit_on_esc(true)
+            .resizable(false)
             .graphics_api(piston_window::OpenGL::V3_2)
             .build()
             .expect("initializing graphics");
 
-    let state = LevelState {
+    let mut state = LevelState {
+        player: Sprite {
+            rect: Rect {
+                bottom: 0.25,
+                left: 0.5,
+                width: 0.125,
+                height: 0.125,
+            },
+            color: Color::random(),
+        },
         level: Level {
             terrain: vec![
-                Terrain {
+                Sprite {
                     rect: Rect {
                         bottom: 0.0,
                         left: 0.0,
@@ -83,7 +101,7 @@ fn main() {
                     },
                     color: Color::random(),
                 },
-                Terrain {
+                Sprite {
                     rect: Rect {
                         bottom: 0.0625,
                         left: 0.0,
@@ -100,20 +118,57 @@ fn main() {
         if let Some(_render) = event.render_args() {
             window.draw_2d(&event, |context, graphics, _device| {
                 clear(Color::black().0, graphics);
-                for terrain in state.level.terrain.iter() {
+
+                for sprite in state.sprites() {
                     rectangle(
-                        terrain.color.0,
+                        sprite.color.0,
                         [
-                            width * terrain.rect.left,
-                            height - height * (terrain.rect.bottom + terrain.rect.height),
-                            width * terrain.rect.width,
-                            height * terrain.rect.height,
+                            width * sprite.rect.left,
+                            height - height * (sprite.rect.bottom + sprite.rect.height),
+                            width * sprite.rect.width,
+                            height * sprite.rect.height,
                         ],
                         context.transform,
                         graphics,
                     );
                 }
             });
+        }
+
+        if let Some(Button::Keyboard(key)) = event.press_args() {
+            match key {
+                Key::W => {
+                    state.player.rect.bottom += 0.1;
+                }
+                Key::A => {
+                    state.player.rect.left -= 0.1;
+                }
+                Key::S => {
+                    state.player.rect.bottom -= 0.1;
+                }
+                Key::D => {
+                    state.player.rect.left += 0.1;
+                }
+                _ => {}
+            }
+        }
+
+        if let Some(Button::Keyboard(key)) = event.release_args() {
+            match key {
+                Key::W => {
+                    println!("no more up");
+                }
+                Key::A => {
+                    println!("no more left");
+                }
+                Key::S => {
+                    println!("no more down");
+                }
+                Key::D => {
+                    println!("no more right");
+                }
+                _ => {}
+            }
         }
     }
 }
