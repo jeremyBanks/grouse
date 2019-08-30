@@ -62,7 +62,7 @@ pub mod colors {
     }
 
     pub fn random() -> Color {
-        [rand::random(), rand::random(), rand::random(), 1.0]
+        [rand::random(), rand::random(), rand::random(), 0.75]
     }
 }
 
@@ -157,7 +157,13 @@ fn main() {
     while let Some(event) = window.next() {
         if let Some(_render) = event.render_args() {
             window.draw_2d(&event, |context, graphics, _device| {
-                clear(colors::black(), graphics);
+                // clear(colors::black(), graphics);
+                rectangle(
+                    [0.0, 0.0, 0.0, 0.25],
+                    [0.0, 0.0, width, height],
+                    context.transform,
+                    graphics,
+                );
 
                 let dt = 1.0 / 60.0;
                 if state.input.acceleration.norm() > 0.0 {
@@ -165,13 +171,39 @@ fn main() {
                     state.player.velocity += state.input.acceleration * dt;
                 } else if state.player.velocity.norm() > 0.1 {
                     // kinetic friction
-                    state.player.velocity -= 4.0 * state.player.velocity * dt;
-                } else {
+                    state.player.velocity -= 2.0 * state.player.velocity * dt;
+                } else if state.player.velocity.norm() > 0.0 {
                     // static friction
                     state.player.velocity *= 0.0;
+                } else {
+                    // lol!
+                    state
+                        .player
+                        .velocity
+                        .set_x((rand::random::<f64>() - 0.5) * 16.0);
+                    state
+                        .player
+                        .velocity
+                        .set_y((rand::random::<f64>() - 0.5) * 16.0);
                 }
 
+                if state.player.velocity.norm() > 1.5 {
+                    state.player.velocity *= 1.5 / state.player.velocity.norm()
+                }
                 state.player.rect.bottom_left += state.player.velocity * dt;
+
+                if state.player.rect.bottom_left.x() < -0.5 {
+                    state.player.rect.bottom_left.add_x(2.0);
+                }
+                if state.player.rect.bottom_left.x() > 1.5 {
+                    state.player.rect.bottom_left.add_x(-2.0);
+                }
+                if state.player.rect.bottom_left.y() < -0.5 {
+                    state.player.rect.bottom_left.add_y(2.0);
+                }
+                if state.player.rect.bottom_left.y() > 1.5 {
+                    state.player.rect.bottom_left.add_y(-2.0);
+                }
 
                 for sprite in state.sprites() {
                     rectangle(
@@ -194,16 +226,16 @@ fn main() {
         if let Some(Button::Keyboard(key)) = event.press_args() {
             match key {
                 Key::W => {
-                    state.input.acceleration.set_y(0.5);
+                    state.input.acceleration.set_y(4.0);
                 }
                 Key::A => {
-                    state.input.acceleration.set_x(-0.5);
+                    state.input.acceleration.set_x(-4.0);
                 }
                 Key::S => {
-                    state.input.acceleration.set_y(-0.5);
+                    state.input.acceleration.set_y(-4.0);
                 }
                 Key::D => {
-                    state.input.acceleration.set_x(0.5);
+                    state.input.acceleration.set_x(4.0);
                 }
                 _ => {}
             }
