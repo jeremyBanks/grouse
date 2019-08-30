@@ -75,6 +75,12 @@ pub struct Level {
 pub struct LevelState {
     pub level: Level,
     pub player: Sprite,
+    pub input: Input,
+}
+
+#[derive(Debug, Clone)]
+pub struct Input {
+    pub acceleration: Vector2,
 }
 
 impl LevelState {
@@ -123,6 +129,9 @@ fn main() {
             color: colors::random(),
             velocity: Vector2::new(0.0, 0.0),
         },
+        input: Input {
+            acceleration: Vector2::new(0.0, 0.0),
+        },
         level: Level {
             terrain: vec![
                 Sprite {
@@ -151,6 +160,17 @@ fn main() {
                 clear(colors::black(), graphics);
 
                 let dt = 1.0 / 60.0;
+                if state.input.acceleration.norm() > 0.0 {
+                    // unbounded acceleration
+                    state.player.velocity += state.input.acceleration * dt;
+                } else if state.player.velocity.norm() > 0.1 {
+                    // kinetic friction
+                    state.player.velocity -= 4.0 * state.player.velocity * dt;
+                } else {
+                    // static friction
+                    state.player.velocity *= 0.0;
+                }
+
                 state.player.rect.bottom_left += state.player.velocity * dt;
 
                 for sprite in state.sprites() {
@@ -174,16 +194,16 @@ fn main() {
         if let Some(Button::Keyboard(key)) = event.press_args() {
             match key {
                 Key::W => {
-                    state.player.velocity.set_y(0.5);
+                    state.input.acceleration.set_y(0.5);
                 }
                 Key::A => {
-                    state.player.velocity.set_x(-0.5);
+                    state.input.acceleration.set_x(-0.5);
                 }
                 Key::S => {
-                    state.player.velocity.set_y(-0.5);
+                    state.input.acceleration.set_y(-0.5);
                 }
                 Key::D => {
-                    state.player.velocity.set_x(0.5);
+                    state.input.acceleration.set_x(0.5);
                 }
                 _ => {}
             }
@@ -192,23 +212,23 @@ fn main() {
         if let Some(Button::Keyboard(key)) = event.release_args() {
             match key {
                 Key::W => {
-                    if state.player.velocity.y() > 0.0 {
-                        state.player.velocity.set_y(0.0);
+                    if state.input.acceleration.y() > 0.0 {
+                        state.input.acceleration.set_y(0.0);
                     }
                 }
                 Key::A => {
-                    if state.player.velocity.x() < 0.0 {
-                        state.player.velocity.set_x(0.0);
+                    if state.input.acceleration.x() < 0.0 {
+                        state.input.acceleration.set_x(0.0);
                     }
                 }
                 Key::S => {
-                    if state.player.velocity.y() < 0.0 {
-                        state.player.velocity.set_y(0.0);
+                    if state.input.acceleration.y() < 0.0 {
+                        state.input.acceleration.set_y(0.0);
                     }
                 }
                 Key::D => {
-                    if state.player.velocity.x() > 0.0 {
-                        state.player.velocity.set_x(0.0);
+                    if state.input.acceleration.x() > 0.0 {
+                        state.input.acceleration.set_x(0.0);
                     }
                 }
                 _ => {}
