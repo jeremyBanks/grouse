@@ -32,4 +32,6 @@ impl Physics for Terrain {
     fn velocity(&self) -> Vector {
         Vector::zero()
     }
+
+    fn tick(&mut self, _dt: f64) {}
 }

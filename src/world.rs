@@ -24,7 +24,13 @@ impl World {
         rectangles
     }
 
-    pub fn tick(&mut self, dt: f64, input: &Input) {}
+    pub fn tick(&mut self, dt: f64, input: &Input) {
+        if input.acceleration.norm() > 0.0 {
+            let acceleration = input.acceleration.normalize() * 4.0;
+            self.player.velocity += dt * acceleration;
+        }
+        self.player.tick(dt);
+    }
 }
 
 #[derive(Debug)]
@@ -59,6 +65,10 @@ impl Physics for Player {
 
     fn velocity(&self) -> Vector {
         self.velocity
+    }
+
+    fn tick(&mut self, dt: f64) {
+        self.bottom_left += dt * self.velocity;
     }
 }
 

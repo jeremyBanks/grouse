@@ -1,6 +1,6 @@
 //! Grouse is a game.
 
-#![feature(duration_float, impl_trait_in_bindings)]
+#![feature(duration_float)]
 #![allow(missing_docs)]
 #![warn(missing_debug_implementations)]
 #![forbid(unsafe_code, anonymous_parameters)]

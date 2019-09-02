@@ -17,14 +17,13 @@ use piston_window::{
 
 use std::time::{
     Duration,
-    Instant,
     SystemTime,
 };
 
 #[derive(Debug)]
 pub struct Input {
     /// The direction of input.
-    acceleration: Vector,
+    pub acceleration: Vector,
 }
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {

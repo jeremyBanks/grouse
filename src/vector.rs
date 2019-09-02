@@ -1,6 +1,4 @@
 ///! The 2D vector we use, rexported from nalgebra with a utility trait added.
-use crate::*;
-
 use nalgebra;
 
 pub type Vector = nalgebra::Vector2<f64>;

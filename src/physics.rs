@@ -6,7 +6,7 @@ pub trait Physics {
     fn bottom_left(&self) -> Vector;
     fn width_height(&self) -> Vector;
     fn velocity(&self) -> Vector;
-    fn accelerate(&mut self, dt: f64) {}
+    fn tick(&mut self, dt: f64);
 }
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
