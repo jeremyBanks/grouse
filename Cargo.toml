@@ -1,6 +1,6 @@
 [package]
 name = "grouse"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Jeremy Banks <_@jeremy.ca>"]
 edition = "2018"
 publish = false
@@ -9,3 +9,14 @@ publish = false
 piston_window = "0.103.0"
 rand = "0.7.0"
 nalgebra = "0.18.1"
+getset = "0.0.8"
+env_logger = "0.6.2"
+log = "0.4.8"
+
+[lib]
+name = "grouse"
+path = "src/lib.rs"
+
+[[bin]]
+name = "grouse"
+path = "src/bin.rs"
