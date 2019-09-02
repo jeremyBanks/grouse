@@ -2,7 +2,7 @@
 
 #![feature(duration_float, impl_trait_in_bindings)]
 #![allow(missing_docs)]
-#![warn(missing_debug_implementations, unused_results)]
+#![warn(missing_debug_implementations)]
 #![forbid(unsafe_code, anonymous_parameters)]
 
 mod graphics;
@@ -21,6 +21,7 @@ pub use crate::{
     world::*,
 };
 
+#[allow(unused_imports)]
 pub(crate) use log::{
     debug,
     error,

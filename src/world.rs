@@ -8,14 +8,23 @@ pub struct World {
 }
 
 impl World {
-    fn new() -> World {
+    pub fn new() -> World {
         World {
             level: Level::new(),
             player: Player::new(),
         }
     }
 
-    fn tick(&mut self, dt: f64, input: Input) {}
+    pub fn rectangles(&self, width: f64, height: f64) -> Vec<Rectangle> {
+        let mut rectangles = Vec::new();
+        for terrain in self.level.terrain.iter() {
+            rectangles.push(terrain.to_rectangle(width, height));
+        }
+        rectangles.push(self.player.to_rectangle(width, height));
+        rectangles
+    }
+
+    pub fn tick(&mut self, dt: f64, input: &Input) {}
 }
 
 #[derive(Debug)]
@@ -26,9 +35,9 @@ pub struct Player {
 }
 
 impl Player {
-    fn new() -> Player {
+    pub fn new() -> Player {
         Player {
-            bottom_left: Vector::zero(),
+            bottom_left: Vector::new(0.10, 0.10),
             width_height: Vector::new(0.05, 0.10),
             velocity: Vector::zero(),
         }
@@ -59,7 +68,7 @@ pub struct Level {
 }
 
 impl Level {
-    fn new() -> Level {
+    pub fn new() -> Level {
         Level {
             terrain: vec![
                 Terrain::new(Vector::new(0.00, 0.00), Vector::new(1.00, 0.05)),

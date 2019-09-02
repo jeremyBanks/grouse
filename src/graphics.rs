@@ -3,16 +3,16 @@ use crate::*;
 
 use rand;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Rectangle {
-    color: Color,
-    x1: f64,
-    x2: f64,
-    y1: f64,
-    y2: f64,
+    pub color: Color,
+    pub left: f64,
+    pub top: f64,
+    pub width: f64,
+    pub height: f64,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub struct Color {
     r: f32,
     g: f32,
@@ -22,6 +22,10 @@ pub struct Color {
 impl Color {
     pub fn new(r: f32, g: f32, b: f32) -> Color {
         Color { r, g, b }
+    }
+
+    pub fn black() -> Color {
+        Color::new(0.0, 0.0, 0.0)
     }
 
     pub fn to_array(&self) -> [f32; 4] {
@@ -38,17 +42,20 @@ pub trait ToRectangle: Physics {
         let size = width.min(height);
 
         let bottom_left = self.bottom_left() * size;
-        let top_right = bottom_left + (self.width_height() * size);
+        let width_height = self.width_height() * size;
 
         Rectangle {
             color: match self.physics_type() {
                 PhysicsType::Static => Color::new(0.25, 0.75, 1.0),
                 PhysicsType::Dynamic => Color::new(0.75, 0.50, 0.50),
             },
-            x1: bottom_left[0],
-            x2: top_right[0],
-            y1: height - bottom_left[1],
-            y2: height - top_right[1],
+            left: bottom_left.x(),
+            top: height - bottom_left.y() - width_height.y(),
+            width: width_height.x(),
+            height: width_height.y(),
         }
     }
 }
+
+impl ToRectangle for Terrain {}
+impl ToRectangle for Player {}

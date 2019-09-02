@@ -9,6 +9,7 @@ pub trait Physics {
     fn accelerate(&mut self, dt: f64) {}
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub enum PhysicsType {
     Static,
     Dynamic,
